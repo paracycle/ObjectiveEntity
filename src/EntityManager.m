@@ -186,9 +186,10 @@ static const char *getPropertyType(objc_property_t property) {
 - (id) getInstanceFromResultSet:(FMResultSet *)_rs {
 	id instance = [[[self.class alloc] init] autorelease];
 	
-	NSDictionary * results = [_rs resultDict];
-	for (NSString * column in [results keyEnumerator]) {
-		id result = [results objectForKey:column];
+	int columnCount = [_rs columnCount];
+	for (int columnIndex = 0; columnIndex < columnCount; columnCount++) {
+        NSString *column = [_rs columnNameForIndex:columnIndex];
+		id result = [_rs objectForColumnIndex:columnIndex];
 		if (result != nil) {
 			if ([result isKindOfClass:[NSData class]]) {
 				NSString * error = nil;
