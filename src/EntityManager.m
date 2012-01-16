@@ -128,8 +128,8 @@ static const char *getPropertyType(objc_property_t property) {
 		objc_property_t property = properties[i];
 		const char * name = property_getName(property);
 		const char * type = getPropertyType(property);
-		NSString * propName = [NSString stringWithCString:name];
-		NSString * propType = [NSString stringWithCString:type];
+		NSString * propName = [NSString stringWithCString:name encoding:NSUTF8StringEncoding];
+		NSString * propType = [NSString stringWithCString:type encoding:NSUTF8StringEncoding];
 		
 		[dict setObject:propType forKey:propName];
 	}
@@ -260,7 +260,8 @@ static const char *getPropertyType(objc_property_t property) {
 }
 
 - (id) initWithDatabasePath:(NSString *)_path delegate:(id<EntityManagerDelegate>)_delegate {
-	if (self == [super init]) {
+    self = [super init];
+	if (self) {
 		db = [[FMDatabase databaseWithPath:_path] retain];
 		
 #if DEBUG
