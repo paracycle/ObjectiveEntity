@@ -238,7 +238,6 @@ static const char *getPropertyType(objc_property_t property) {
 
 @interface EntityManager (private)
 - (id) initWithDatabasePath:(NSString *)_path delegate:(id <EntityManagerDelegate>)_delegate;
-- (id) getInstanceOfClass:(ClassMap *)_classMap fromResultSet:(FMResultSet *)_rs;
 - (void) initializeAndUpdateTables:(id <EntityManagerDelegate>)_delegate;
 @end
 
@@ -398,7 +397,7 @@ static const char *getPropertyType(objc_property_t property) {
 	id instance = nil;
 	
 	if ([rs next]) {
-		instance = [classMap getInstanceOfClassFromResultSet:rs];
+		instance = [classMap getInstanceFromResultSet:rs];
 	}
 	
 	[rs close];
@@ -420,7 +419,7 @@ static const char *getPropertyType(objc_property_t property) {
 	
 	NSMutableArray * resultSet = [NSMutableArray array];
 	while ([rs next]) {
-		[resultSet addObject:[self getInstanceOfClassFromResultSet:rs]];
+		[resultSet addObject:[classMap getInstanceFromResultSet:rs]];
 	}
 	
 	[rs close];
@@ -436,7 +435,7 @@ static const char *getPropertyType(objc_property_t property) {
 	id instance = nil;
 	
 	if ([rs next]) {
-		instance = [self getInstanceOfClassFromResultSet:rs];
+		instance = [classMap getInstanceFromResultSet:rs];
 	}
 	
 	[rs close];
