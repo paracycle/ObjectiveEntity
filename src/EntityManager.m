@@ -36,7 +36,7 @@ static const char *getPropertyType(objc_property_t property) {
 - (id) getInstanceFromResultSet:(FMResultSet *)_rs;
 - (id) getValueForPrimaryKeyWithInstance:(id)instance;
 - (NSArray *) getValuesForEntity:(id)instance;
-- (NSArray *) getValuesForEntity:(id)instance withPrimaryKeyLast:(BOOL)_primaryKeyLast;
+- (NSArray *) getValuesForEntity:(id)instance appendPrimaryKey:(BOOL)_appendPrimaryKey;
 
 @property (nonatomic, retain) Class class;
 @property (nonatomic, retain) NSString * tableName;
@@ -167,10 +167,6 @@ static const char *getPropertyType(objc_property_t property) {
 	self.selectQuery = [NSString stringWithFormat:@"%@ %@ = ?", self.selectQueryPrefix, self.primaryKey];	
 }
 
-- (NSArray *) getValuesForEntity:(id)instance {
-	return [self getValuesForEntity:instance withPrimaryKeyLast:NO];
-}
-
 - (id) getValueForColumn:(NSString *)_column withInstance:(id)instance {
 	id value = [instance performSelector:NSSelectorFromString(_column)];
 
@@ -216,18 +212,19 @@ static const char *getPropertyType(objc_property_t property) {
 	return [self getValueForColumn:self.primaryKey withInstance:instance];
 }
 
-- (NSArray *) getValuesForEntity:(id)instance withPrimaryKeyLast:(BOOL)_primaryKeyLast
+- (NSArray *) getValuesForEntity:(id)instance {
+	return [self getValuesForEntity:instance appendPrimaryKey:NO];
+}
+
+- (NSArray *) getValuesForEntity:(id)instance appendPrimaryKey:(BOOL)_appendPrimaryKey
 {
 	NSMutableArray * values = [NSMutableArray array];
 	
 	for (NSString * column in [self.columns keyEnumerator]) {
-		if (_primaryKeyLast && [column isEqualToString:self.primaryKey])
-			continue;
-		
 		[values addObject:[self getValueForColumn:column withInstance:instance]];
 	}
 	
-	if (_primaryKeyLast) {
+	if (_appendPrimaryKey) {
 		[values addObject:[self getValueForColumn:self.primaryKey withInstance:instance]];
 	}
 	
@@ -342,7 +339,7 @@ static const char *getPropertyType(objc_property_t property) {
 - (void) update:(id)instance {
 	ClassMap * classMap = [structureMap objectForKey:NSStringFromClass([instance class])];
 	
-	[self.db executeUpdate:classMap.updateQuery withArgumentsInArray:[classMap getValuesForEntity:instance withPrimaryKeyLast:YES]];
+	[self.db executeUpdate:classMap.updateQuery withArgumentsInArray:[classMap getValuesForEntity:instance appendPrimaryKey:YES]];
 }
 
 - (void) remove:(id)instance {
