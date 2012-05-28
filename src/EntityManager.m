@@ -189,7 +189,27 @@ static const char *getPropertyType(objc_property_t property) {
 
 - (id) getInstanceFromResultSet:(FMResultSet *)_rs {
 	id instance = [[[self.class alloc] init] autorelease];
-	
+
+	int count = [_rs columnCount];
+	for (int idx = 0; idx < count; idx++) {
+        NSString *column = [_rs columnNameForIndex:idx];
+		id result = [_rs objectForColumnIndex:idx];
+		if (result != nil) {
+			if ([result isKindOfClass:[NSData class]]) {
+				NSString * error = nil;
+				NSPropertyListFormat format = NSPropertyListBinaryFormat_v1_0;
+				result = [NSPropertyListSerialization propertyListFromData:result
+														  mutabilityOption:NSPropertyListMutableContainers 
+																	format:&format
+														  errorDescription:&error];
+				[error release];
+			} else if ([[self.columns objectForKey:column] isEqualToString:@"NSDate"]) {
+				result = [_rs dateForColumn:column];
+			}
+		}
+		[instance setValue:result forKey:column];
+	}
+	/*
 	NSDictionary * results = [_rs resultDict];
 	for (NSString * column in [results keyEnumerator]) {
 		id result = [results objectForKey:column];
@@ -208,7 +228,7 @@ static const char *getPropertyType(objc_property_t property) {
 		}
 		[instance setValue:result forKey:column];
 	}
-	
+	*/
 	return instance;
 }
 
@@ -221,8 +241,8 @@ static const char *getPropertyType(objc_property_t property) {
 	NSMutableArray * values = [NSMutableArray array];
 	
 	for (NSString * column in [self.columns keyEnumerator]) {
-		if (_primaryKeyLast && [column isEqualToString:self.primaryKey])
-			continue;
+//		if (_primaryKeyLast && [column isEqualToString:self.primaryKey])
+//			continue;
 		
 		[values addObject:[self getValueForColumn:column withInstance:instance]];
 	}
@@ -238,7 +258,7 @@ static const char *getPropertyType(objc_property_t property) {
 
 @interface EntityManager (private)
 - (id) initWithDatabasePath:(NSString *)_path delegate:(id <EntityManagerDelegate>)_delegate;
-- (id) getInstanceOfClass:(ClassMap *)_classMap fromResultSet:(FMResultSet *)_rs;
+//- (id) getInstanceOfClass:(ClassMap *)_classMap fromResultSet:(FMResultSet *)_rs;
 - (void) initializeAndUpdateTables:(id <EntityManagerDelegate>)_delegate;
 @end
 
@@ -398,7 +418,7 @@ static const char *getPropertyType(objc_property_t property) {
 	id instance = nil;
 	
 	if ([rs next]) {
-		instance = [classMap getInstanceOfClassFromResultSet:rs];
+		instance = [classMap getInstanceFromResultSet:rs];
 	}
 	
 	[rs close];
@@ -420,7 +440,7 @@ static const char *getPropertyType(objc_property_t property) {
 	
 	NSMutableArray * resultSet = [NSMutableArray array];
 	while ([rs next]) {
-		[resultSet addObject:[self getInstanceOfClassFromResultSet:rs]];
+		[resultSet addObject:[classMap getInstanceFromResultSet:rs]];
 	}
 	
 	[rs close];
@@ -436,7 +456,7 @@ static const char *getPropertyType(objc_property_t property) {
 	id instance = nil;
 	
 	if ([rs next]) {
-		instance = [self getInstanceOfClassFromResultSet:rs];
+		instance = [classMap getInstanceFromResultSet:rs];
 	}
 	
 	[rs close];
