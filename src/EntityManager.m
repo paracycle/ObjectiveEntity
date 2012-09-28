@@ -128,8 +128,8 @@ static const char *getPropertyType(objc_property_t property) {
 		objc_property_t property = properties[i];
 		const char * name = property_getName(property);
 		const char * type = getPropertyType(property);
-		NSString * propName = [NSString stringWithCString:name];
-		NSString * propType = [NSString stringWithCString:type];
+		NSString * propName = [NSString stringWithUTF8String:name];
+		NSString * propType = [NSString stringWithUTF8String:type];
 		
 		[dict setObject:propType forKey:propName];
 	}
